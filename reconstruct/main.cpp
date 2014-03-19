@@ -3,11 +3,13 @@
 #include <deque>
 #include <utility>
 #include <GL\freeglut.h>
-#include "bitmap/bitmap_image.hpp"
+#include "bitmap_image.hpp"
 #include "struct_pixel.h"
+#include "bmp2csv.h"
 
 static std::deque<util_pixel> dqPx;
 
+#ifdef READ_BMP
 void read_single_bmp(int idx)
 {
     char filename_to_read[16];
@@ -44,6 +46,20 @@ void read_bmps(int total)
         read_single_bmp(idx);
     }
 }
+#else
+void read_pixels_from_csv()
+{
+    FILE *fd = nullptr;
+    util_pixel px;
+    /// feof after read operation:
+    /// make sure last read operation which reached EOF will NOT go through the loop!
+    while ( (fd = bmp2csv_read(&px, fd) ) && !feof(fd))
+    {
+        px.x = px.x - 484; px.y = -(px.y - 246); px.z = px.z * -2 + 400;
+        dqPx.push_back(px);
+    }
+}
+#endif
 
 void display()
 {
@@ -109,6 +125,14 @@ inline void init()
     glMatrixMode(GL_MODELVIEW);
 }
 
+inline void read_pixel_data()
+{
+    #ifdef READ_BMP
+    read_bmps(400);
+    #else
+    read_pixels_from_csv();
+    #endif // READ_BMP
+}
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
@@ -121,7 +145,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
     glutKeyboardFunc(key_stroke);
 
-    read_bmps(100);
+    read_pixel_data();
 
     glutMainLoop();
     glutExit();
