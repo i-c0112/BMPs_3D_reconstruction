@@ -1,4 +1,3 @@
-#define GLUT_DISABLE_ATEXIT_HACK
 #include <cstdio>
 #include <deque>
 #include <utility>
@@ -194,9 +193,6 @@ inline void init()
     glEnable(GL_POINT_SMOOTH);
 
     glMatrixMode(GL_MODELVIEW);
-//    gluLookAt(0.0, 0.0, 1400.0,
-//              0.0, 0.0, 0.0,
-//              0.0, 1.0, 0.0);
     gluLookAt(-1400.0, 0.0, 0.0,
               0.0, 0.0, 0.0,
               0.0, 1.0, 0.0);
@@ -219,7 +215,7 @@ void cleanup()
 {
     for (auto it : dqRotate)
     {
-        delete *it;
+        delete it;
     }
     dqRotate.clear();
 }
