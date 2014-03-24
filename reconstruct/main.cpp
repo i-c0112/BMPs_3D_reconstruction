@@ -1,6 +1,7 @@
 #define GLUT_DISABLE_ATEXIT_HACK
 #include <cstdio>
 #include <deque>
+#include <stack>
 #include <utility>
 #include <GL\freeglut.h>
 #include "bitmap_image.hpp"
@@ -61,9 +62,50 @@ void read_pixels_from_csv()
 }
 #endif
 
+struct rotation
+{
+    virtual void rot() {};
+
+    virtual ~rotation() {}
+};
+struct rotation_horizontal : rotation
+{
+    float deg;
+    explicit rotation_horizontal(float arg_deg) : deg(arg_deg) {}
+    virtual void rot()
+    {
+        glRotatef(deg, 0.0f, 1.0f, 0.0f);
+    }
+
+    virtual ~rotation_horizontal() {}
+};
+struct rotation_vertical : rotation
+{
+    float deg;
+    explicit rotation_vertical(float arg_deg) : deg(arg_deg) {}
+    virtual void rot()
+    {
+        glRotatef(deg, 0.0f, 0.0f, -1.0f);
+    }
+
+    virtual ~rotation_vertical() {}
+};
+static std::deque<rotation*> dqRotate;
+inline void do_rotations()
+{
+    for (std::deque<rotation*>::reverse_iterator rit = dqRotate.rbegin(); rit != dqRotate.rend(); ++rit)
+    {
+        (*rit)->rot();
+    }
+}
+
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glPopMatrix();
+    glPushMatrix();
+    do_rotations();
 
     glBegin(GL_POINTS);
         for (util_pixel px : dqPx)
@@ -81,29 +123,70 @@ void key_stroke(unsigned char key, int x, int y)
     {
         case '\r':
             glutLeaveMainLoop();
-            break;
-
+            return;
         case 'a':
-            glRotatef(-30.0, 0.0, 1.0, 0.0);
-            glutPostRedisplay();
+            dqRotate.push_back(new rotation_horizontal(30.0f));
             break;
         case 'd':
-            glRotatef(30.0, 0.0, 1.0, 0.0);
-            glutPostRedisplay();
+            dqRotate.push_back(new rotation_horizontal(-30.0f));
             break;
         case 'w':
-            glRotatef(-30.0, 0.0, 0.0, -1.0);
-            glutPostRedisplay();
+            dqRotate.push_back(new rotation_vertical(30.0f));
             break;
         case 's':
-            glRotatef(30.0, 0.0, 0.0, -1.0);
-            glutPostRedisplay();
+            dqRotate.push_back(new rotation_vertical(-30.0f));
             break;
 
         default:
             fprintf(stderr, "What are you pressing now?\n");
-            break;
+            return;
     }
+    glutPostRedisplay();
+}
+
+static bool isButtonDown = false;
+static int origX, origY;
+void mouse_clicked(int button, int state, int x, int y)
+{
+    /// this is called only when buttons clicked or released.
+    /// so if you want to drag things you'll need MotionFunc
+    if (button == GLUT_LEFT_BUTTON)
+    {
+        if (state == GLUT_DOWN)
+        {
+            isButtonDown = true;
+
+            /// rotate the modelview
+            /// dont be too sensitive, so store the distance to check if rotation is required
+            origX = x;
+            origY = y;
+        }
+        else
+            isButtonDown = false;
+    }
+}
+void mouse_motion(int x, int y)
+{
+    if (!isButtonDown)
+        return;
+
+    bool shouldDraw = false;
+    /// according to MilkShape3D: horizontal difference always account for rotate around y-axis
+    if (abs(x - origX) > 30)
+    {
+//        glRotatef( x > origX? 15.0f: -15.0f , 0.0f, 1.0f, 0.0f);
+        dqRotate.push_front(new rotation_horizontal(x > origX? -15.0f: 15.0f));
+        origX = x;
+        shouldDraw = true;
+    }
+    if (abs(y - origY) > 30)
+    {
+        dqRotate.push_back(new rotation_vertical(y > origY? 15.0f: -15.0f));
+        origY = y;
+        shouldDraw = true;
+    }
+
+    if (shouldDraw) glutPostRedisplay();
 }
 
 inline void init()
@@ -133,6 +216,14 @@ inline void read_pixel_data()
     read_pixels_from_csv();
     #endif // READ_BMP
 }
+void cleanup()
+{
+    while (!dqRotate.empty())
+    {
+        delete *dqRotate.rend();
+        dqRotate.pop_back();
+    }
+}
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
@@ -141,14 +232,17 @@ int main(int argc, char **argv)
     glutCreateWindow("BMPs");
 
     init();
+    read_pixel_data();
 
     glutDisplayFunc(display);
     glutKeyboardFunc(key_stroke);
-
-    read_pixel_data();
+    glutMouseFunc(mouse_clicked);
+    glutMotionFunc(mouse_motion);
 
     glutMainLoop();
     glutExit();
+
+    cleanup();
 
     return 0;
 }
