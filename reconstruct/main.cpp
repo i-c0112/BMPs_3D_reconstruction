@@ -217,11 +217,11 @@ inline void read_pixel_data()
 }
 void cleanup()
 {
-    while (!dqRotate.empty())
+    for (auto it : dqRotate)
     {
-        delete *dqRotate.rend();
-        dqRotate.pop_back();
+        delete *it;
     }
+    dqRotate.clear();
 }
 int main(int argc, char **argv)
 {
