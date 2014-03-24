@@ -1,7 +1,6 @@
 #define GLUT_DISABLE_ATEXIT_HACK
 #include <cstdio>
 #include <deque>
-#include <stack>
 #include <utility>
 #include <GL\freeglut.h>
 #include "bitmap_image.hpp"
