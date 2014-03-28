@@ -7,7 +7,7 @@ const char CSV_FILENAME[] = "parsed.csv";
 #include <cstdio>
 #include "struct_pixel.h"
 
-bool bmp2csv_write(const util_pixel *pPx, bool clean = false)
+bool bmp2csv_write(const util_pixel *pPx, bool clean)
 {
     FILE *fd = fopen(CSV_FILENAME, (clean? "w": "a"));
     if (!fd)
@@ -23,6 +23,9 @@ bool bmp2csv_write(const util_pixel *pPx, bool clean = false)
         fclose(fd);
         return false;
     }
+//    fprintf(stderr, "%d,%d,%d,%f,%f,%f\n", pPx->x, pPx->y, pPx->z, pPx->r, pPx->g, pPx->b);
+    fprintf(stderr, "%d\n", clean);
+    fflush(fd);
     fclose(fd);
     return true;
 }

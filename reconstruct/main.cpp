@@ -4,10 +4,20 @@
 #include <GL\freeglut.h>
 #include "bitmap_image.hpp"
 #include "struct_pixel.h"
-#include "bmp2csv.h"
 
+//! storage of pixels(should be optimized to successive memory storage)
 static std::deque<util_pixel> dqPx;
+//! forward declaration required by dqRotate
+struct rotation;
+//! tweak to do right rotate order of glRotate
+static std::deque<rotation*> dqRotate;
+//! variable used in mouse event
+bool isButtonDown = false;
+static int origX, origY;
 
+//! priority: READ_BMP > READ_BIN > READ_CSV
+//! defaut: READ_CSV
+#define READ_BIN
 #ifdef READ_BMP
 void read_single_bmp(int idx)
 {
@@ -38,14 +48,31 @@ void read_single_bmp(int idx)
         }
     }
 }
-void read_bmps(int total)
+inline void read_bmps(int total)
 {
     for (int idx = 1; idx <= total; ++idx)
     {
         read_single_bmp(idx);
     }
 }
-#else
+#elif defined READ_BIN
+#include "bmp2binary.h"
+void read_pixels_from_binary()
+{
+    std::fstream fd;
+    if (!bmp2binary_open_for_read(fd))
+    {
+        fprintf(stderr, "Failed to open %s!\n", BIN_FILENAME);
+        return;
+    }
+    util_pixel px;
+    while (bmp2binary_read(fd, px))
+    {
+        px.x = px.x - 484; px.y = -(px.y - 246); px.z = px.z * -2 + 400;
+        dqPx.push_back(px);
+    }
+}
+#include "bmp2csv.h"
 void read_pixels_from_csv()
 {
     FILE *fd = nullptr;
@@ -88,7 +115,6 @@ struct rotation_vertical : rotation
 
     virtual ~rotation_vertical() {}
 };
-static std::deque<rotation*> dqRotate;
 inline void do_rotations()
 {
     for (std::deque<rotation*>::reverse_iterator rit = dqRotate.rbegin(); rit != dqRotate.rend(); ++rit)
@@ -142,8 +168,6 @@ void key_stroke(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-static bool isButtonDown = false;
-static int origX, origY;
 void mouse_clicked(int button, int state, int x, int y)
 {
     /// this is called only when buttons clicked or released.
@@ -207,6 +231,8 @@ inline void read_pixel_data()
 {
     #ifdef READ_BMP
     read_bmps(400);
+    #elif defined READ_BIN
+    read_pixels_from_binary();
     #else
     read_pixels_from_csv();
     #endif // READ_BMP
