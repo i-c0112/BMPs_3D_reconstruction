@@ -32,6 +32,14 @@ bool bmp2binary_write(std::fstream & fd, const util_pixel &px)
     fd.write((char *)&px, sizeof(util_pixel));
     return true;
 }
+bool bmp2binary_write(std::fstream & fd, const util_pixel_cross_platform_storage &px)
+{
+    if (!fd.is_open())
+        return false;
+
+    fd.write((char *)&px, sizeof(util_pixel_cross_platform_storage));
+    return true;
+}
 
 bool bmp2binary_read(std::fstream & fd, util_pixel &pxOut)
 {
@@ -40,6 +48,17 @@ bool bmp2binary_read(std::fstream & fd, util_pixel &pxOut)
 
 	//! beware always check eof after read and also check for fail or error
     if (!(fd.read((char *)&pxOut, sizeof(util_pixel))) || fd.eof())
+		return false;
+
+	return true;
+}
+bool bmp2binary_read(std::fstream & fd, util_pixel_cross_platform_storage &pxOut)
+{
+    if (!fd.is_open())
+        throw bad_read("bad fstream read operation: not associated!\n");
+
+	//! beware always check eof after read and also check for fail or error
+    if (!(fd.read((char *)&pxOut, sizeof(util_pixel_cross_platform_storage))) || fd.eof())
 		return false;
 
 	return true;
