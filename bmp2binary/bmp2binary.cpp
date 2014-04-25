@@ -1,7 +1,8 @@
 // configuration
+#define CROSS_PLATFORM_STORAGE
 const char *DIR = "Sample/";
 const int file_count = 400;
-const unsigned char threshold = 128;
+const unsigned char threshold = 112;
 // end of configuration
 
 #include <iostream>
@@ -20,8 +21,7 @@ int main()
         ss.str("");
         ss << (std::string)DIR;
         ss << i << std::string(".bmp");
-	
-		std::cout << ss.str() << std::endl;
+
         bitmap_image bmp(ss.str());
         unsigned int w = bmp.width();
         unsigned int h = bmp.height();
@@ -39,9 +39,15 @@ int main()
                 if (r < threshold || g < threshold || b < threshold)
                     continue;
 
+#ifdef CROSS_PLATFORM_STORAGE
+                util_pixel_cross_platform_storage px;
+                px.x = (int16_t)x; px.y = (int16_t)y; px.z = (int16_t)i;
+                px.br = (int8_t)r; px.bg = (int8_t)g; px.bb = (int8_t)b;
+#else
                 util_pixel px;
                 px.x = x; px.y = y; px.z = i;
                 px.r = rgb_b2f(r); px.g = rgb_b2f(g); px.b = rgb_b2f(b);
+#endif
 
                 if (!bmp2binary_write(fd, px))
                     return 1;
