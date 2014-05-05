@@ -11,4 +11,6 @@
 *.lai
 *.la
 *.a
-*.bindata
+
+# QT projet IDE settings
+*.pro.user
