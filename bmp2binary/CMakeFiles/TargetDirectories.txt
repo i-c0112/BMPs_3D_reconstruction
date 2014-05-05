@@ -1,1 +1,0 @@
-D:/Coding/reconstruct/bmp2binary/CMakeFiles/bmp2binary.dir
