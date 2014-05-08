@@ -8,7 +8,7 @@ QT, qmake
 
 /include/ :
 
-1. bitmap_imgage.hpp
+1. bitmap_imgage.hpp # This is provided because its a GPL licensed software
 2. bmp2binary.h
 3. bmp2csv.h
 4. struct_pixel.h
