@@ -6,6 +6,7 @@ cmake
     1.bmp2csv
     2.bmp2binary
     3.reconstruct
+    (以上檔案結構簡單，亦可使用Code Blocks 等IDE 直接加入source code 和 header)
     
 QT, qmake
 
