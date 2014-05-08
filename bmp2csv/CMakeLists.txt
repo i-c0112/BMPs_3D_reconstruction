@@ -1,0 +1,6 @@
+cmake_minimum_required (VERSION 2.6)
+project (bmp2csv)
+set (HEADER_DIR ${PROJECT_SOURCE_DIR}/../include)
+include_directories(${HEADER_DIR})
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+add_executable(bmp2csv bmp2csv.cpp ${HEADER_DIR}/bmp2csv.h ${HEADER_DIR}/struct_pixel.h ${HEADER_DIR}/bitmap_image.hpp)

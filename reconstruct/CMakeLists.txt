@@ -1,0 +1,5 @@
+cmake_minimum_required (VERSION 2.6)
+project(reconstruct)
+set (HEADER_DIR ${reconstruct_SOURCE_DIR}/../include)
+include_directories (${HEADER_DIR})
+add_executable(reconstruct main.cpp ${HEADER_DIR}/struct_pixel.h)
