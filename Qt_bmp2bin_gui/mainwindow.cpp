@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include "mainwindow.h"
 #include "lineinputdialog.h"
+#include "progressbardialog.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -41,10 +42,8 @@ void MainWindow::menuActionNew()
     if (result == QDialog::Accepted)
     {
         // retrieve the user input
-        newFileName = textDialog->getUserInput();
+        newFileName = textDialog->getUserInput() + ".bindata";
     }
-    // not sure if exec close the dialog when done.
-    // in most cases, the dialog is just hidden.
     textDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     textDialog->close();
 
@@ -52,12 +51,18 @@ void MainWindow::menuActionNew()
         return;
 
     // if yes popup QFileDialog for a dir containing BMPs to read
-    QString dir;
-    dir = QFileDialog::getExistingDirectory(this, "Select where the BMPs are located.", "D:/Coding/reconstruct/01/sample");
+    QString dir = QFileDialog::getExistingDirectory(this, "Select where the BMPs are located.", "D:/Coding/reconstruct/01/sample");
     if (dir.isNull())
         return;
 
-    // if yes popup another dialog to show progress bar and create a QThread for IO
+    // if yes, popup another dialog to show progress bar and create a QThread for IO.
+    // And the dialog should be modal, that is, no actions can be done before the file generation is finished.
+    ProgressBarDialog *pPBD = new ProgressBarDialog(newFileName, dir, this);
+    pPBD->exec();
 
+    // should there be a error code handler here to inform user the failure and fix something?
+    // if (ERROR) .....
 
+    // unconfirmed way to delete this
+    pPBD->deleteLater();
 }
